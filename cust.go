@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"os"
@@ -15,7 +14,8 @@ import (
 var (
 	//nsqd的地址，使用了tcp监听的端口
 	// tcpNsqdAddrr = "127.0.0.1:4150" //消费第一个insert
-	tcpNsqdAddrr = "127.0.0.1:4152"
+	//tcpNsqdAddrr = "127.0.0.1:4152"
+	lookupdAddrr = "127.0.0.1:4161" //lookupd http地址
 )
 
 //声明一个结构体，实现HandleMessage接口方法（根据文档的要求）
@@ -26,7 +26,7 @@ type NsqHandler struct {
 	nsqHandlerID string
 }
 
-//实现HandleMessage方法
+//实现 Handler接口上的HandleMessage方法
 //message是接收到的消息
 func (s *NsqHandler) HandleMessage(message *nsq.Message) error {
 	//没收到一条消息+1
@@ -40,16 +40,27 @@ func (s *NsqHandler) HandleMessage(message *nsq.Message) error {
 
 func main() {
 	//初始化配置
-	config := nsq.NewConfig()
+	conf := nsq.NewConfig()
+	conf.ReadTimeout = 10 * time.Second
+	conf.WriteTimeout = 10 * time.Second
+	conf.HeartbeatInterval = 5 * time.Second //心跳检查
+
 	//创造消费者，参数一时订阅的主题，参数二是使用的通道
-	com, err := nsq.NewConsumer("Insert", "channel1", config)
+	com, err := nsq.NewConsumer("test", "channel1", conf)
 	if err != nil {
 		fmt.Println(err)
 	}
+
 	//添加处理回调
-	com.AddHandler(&NsqHandler{nsqHandlerID: "One"})
+	//com.AddHandler(&NsqHandler{nsqHandlerID: "One"}) //默认是单个goroutine处理消息
+
+	//通过并发的方式消费
+	com.AddConcurrentHandlers(&NsqHandler{nsqHandlerID: "One"}, 10)
 	//连接对应的nsqd
-	err = com.ConnectToNSQD(tcpNsqdAddrr)
+	//err = com.ConnectToNSQD(tcpNsqdAddrr)
+
+	//通过lookupd查询到nsqd节点后，连接到对应的nsqd
+	err = com.ConnectToNSQLookupd(lookupdAddrr)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -66,9 +77,9 @@ func main() {
 	sig := <-ch
 
 	log.Println("exit signal: ", sig.String())
-	// Create a deadline to wait for.
-	_, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
+
+	//优雅的停止消费者
+	com.Stop()
 
 	log.Println("shutting down")
 }

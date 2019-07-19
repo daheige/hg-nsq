@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/nsqio/go-nsq"
 )
@@ -17,17 +18,22 @@ var (
 //先创建一个主题，并且发布100条消息
 func main() {
 	//初始化配置
-	config := nsq.NewConfig()
-	for i := 0; i < 100; i++ {
-		//创建100个生产者
-		tPro, err := nsq.NewProducer(tcpNsqdAddrr, config)
-		if err != nil {
-			fmt.Println("new producer err:", err)
-			continue
-		}
+	conf := nsq.NewConfig()
+	conf.ReadTimeout = 10 * time.Second
+	conf.WriteTimeout = 10 * time.Second
+	conf.HeartbeatInterval = 5 * time.Second //心跳检查
 
+	//创建生产者
+	tPro, err := nsq.NewProducer(tcpNsqdAddrr, conf)
+	if err != nil {
+		fmt.Println("new producer err:", err)
+	}
+
+	//测试发送100w消息
+	nums := 100 * 10000
+	for i := 0; i < nums; i++ {
 		//主题
-		topic := "Insert"
+		topic := "test"
 		//主题内容
 		tCommand := "hello:" + strconv.Itoa(i)
 		//发布消息
@@ -37,6 +43,7 @@ func main() {
 			continue
 		}
 
+		fmt.Println("current index: ", i)
 		fmt.Println("send msg success")
 	}
 }

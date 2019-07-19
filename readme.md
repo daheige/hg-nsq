@@ -20,9 +20,9 @@
 
     2、启动两个nsqd
 
-        mkdir /usr/local/nsq/data && nsqd --lookupd-tcp-address=127.0.0.1:4160 -tcp-address=0.0.0.0:4152 -http-address=0.0.0.0:4153 --data-path=/usr/local/nsq/data
+        mkdir -p /usr/local/nsq/data && nsqd --lookupd-tcp-address=127.0.0.1:4160 -tcp-address=127.0.0.1:4152 -http-address=127.0.0.1:4153 -broadcast-address=127.0.0.1 --data-path=/usr/local/nsq/data
 
-        mkdir /usr/local/nsq/data2 && nsqd --lookupd-tcp-address=127.0.0.1:4160 -tcp-address=0.0.0.0:4150 -http-address=0.0.0.0:4151 --data-path=/usr/local/nsq/data2
+        mkdir -p /usr/local/nsq/data2 && nsqd --lookupd-tcp-address=127.0.0.1:4160 -tcp-address=127.0.0.1:4150 -http-address=127.0.0.1:4151 -broadcast-address=127.0.0.1 --data-path=/usr/local/nsq/data2
 
     3、启动nqsadmin，连接到nsqlookupd
         nsqadmin --lookupd-http-address=127.0.0.1:4161
@@ -81,6 +81,11 @@
     再次访问http://localhost:4171  之前挤压的100条信息，都被我们的订阅者消化掉了，也就是读取了
 
     所以我们的订阅者（可以有多个）如果提前订阅主题的话，只要对应的主题有发布新内容，就可以马上异步读取
+
+    查看消费次数： http://localhost:4171/counter
+    查看nsqd 4153 http://localhost:4171/nodes/127.0.0.1:4153
+
+    可以启动多个消费者，这样的话，处理速度就会加快
 
 # 参考文档
     https://segmentfault.com/a/1190000009194607
