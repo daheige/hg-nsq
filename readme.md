@@ -1,5 +1,6 @@
 # nsq消息队列
     nsq学习
+
 # 下载安装
     cd /usr/local
     sudo wget https://s3.amazonaws.com/bitly-downloads/nsq/nsq-1.1.0.linux-amd64.go1.10.3.tar.gz
@@ -87,9 +88,17 @@
 
     可以启动多个消费者，这样的话，处理速度就会加快
 
+# 官网文档
+    https://nsq.io/overview/quick_start.html
+
+# 优雅地退出发送和消费者模式
+    参考production.go和cust.go 接收信号量处理方式
+    
 # 参考文档
     https://segmentfault.com/a/1190000009194607
     
-    https://segmentfault.com/a/1190000009194607?utm_medium=hao.caibaojian.com&utm_source=hao.caibaojian.com&share_user=1030000000178452
-
     https://blog.csdn.net/sd653159/article/details/83624661
+
+    https://github.com/nsqio/nsq
+
+    https://github.com/nsqio/go-nsq
